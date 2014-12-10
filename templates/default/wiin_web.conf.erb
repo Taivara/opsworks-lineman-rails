@@ -23,24 +23,26 @@
     Deny from all
   </Directory>
 
+  <Location /*>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+  </Location>
+
   LogLevel info
   ErrorLog /var/log/apache2/wiin_web-error.log
   CustomLog /var/log/apache2/wiin_web-access.log combined
   CustomLog /var/log/apache2/wiin_web-ganglia.log ganglia
 
   FileETag none
-
-  RewriteEngine On
-  IncludeOptional /etc/apache2/sites-available/wiin_web.conf.d/rewrite*
-
-  # Canonical host
-  #RewriteCond %{HTTP_HOST}   !^admin.getwiin.com [NC]
-  #RewriteCond %{HTTP_HOST}   !^$
-  #RewriteRule ^/(.*)$        http://admin.getwiin.com/$1 [L,R=301]
-
-  RewriteCond %{REQUEST_URI} !\.(css|gif|jpg|jpeg|png)$
-  RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
-  RewriteCond %{SCRIPT_FILENAME} !maintenance.html
-  RewriteRule ^.*$ /system/maintenance.html [L]
-
+  
+  <ifModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-f
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !index
+    RewriteRule (.*) /index.html [L,QSA]
+  </ifModule>
+ 
 </VirtualHost>
