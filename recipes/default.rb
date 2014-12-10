@@ -6,6 +6,7 @@
 #
 # All rights reserved - Do Not Redistribute
 #
+Dir.mkdir "#{node['working_dir']}"
 
 node[:deploy].each do |application, deploy|
 
