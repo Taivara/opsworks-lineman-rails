@@ -51,4 +51,16 @@ node[:deploy].each do |application, deploy|
       service "apache2" do action :restart; end
     end
   end
+
+  execute 'npm-install' do
+    cwd "#{node['working_dir']}/current"
+    command "npm install"
+    action :run
+  end
+
+  execute 'lineman-build' do
+    cwd "#{node['working_dir']}/current"
+    command "lineman build"
+    action :run
+  end
 end
