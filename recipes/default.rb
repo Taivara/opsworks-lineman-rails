@@ -67,6 +67,7 @@ node[:deploy].each do |application, deploy|
     action :run
   end
 
+  ENV['WiiN_API_Root'] = node['api_root']
   execute 'lineman-build' do
     cwd "#{node['working_dir']}/current"
     command "lineman build"
