@@ -1,0 +1,47 @@
+<VirtualHost *:80>
+  ServerName admin.getwiin.com
+  ServerAlias wiin_web 
+
+  DocumentRoot <%= @deploy_dir %>/current/dist/
+  RackBaseURI /
+  RackEnv production
+
+  <Directory <%= @deploy_dir %>/current/dist/>
+    Options FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
+
+  <Directory ~ "\.svn">
+    Order allow,deny
+    Deny from all
+  </Directory>
+
+  <Directory ~ "\.git">
+    Order allow,deny
+    Deny from all
+  </Directory>
+
+  LogLevel info
+  ErrorLog /var/log/apache2/wiin_web-error.log
+  CustomLog /var/log/apache2/wiin_web-access.log combined
+  CustomLog /var/log/apache2/wiin_web-ganglia.log ganglia
+
+  FileETag none
+
+  RewriteEngine On
+  IncludeOptional /etc/apache2/sites-available/wiin_web.conf.d/rewrite*
+
+  # Canonical host
+  #RewriteCond %{HTTP_HOST}   !^admin.getwiin.com [NC]
+  #RewriteCond %{HTTP_HOST}   !^$
+  #RewriteRule ^/(.*)$        http://admin.getwiin.com/$1 [L,R=301]
+
+  RewriteCond %{REQUEST_URI} !\.(css|gif|jpg|jpeg|png)$
+  RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
+  RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+  RewriteRule ^.*$ /system/maintenance.html [L]
+
+  IncludeOptional /etc/apache2/sites-available/wiin_web.conf.d/local*
+</VirtualHost>

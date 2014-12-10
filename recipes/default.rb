@@ -6,7 +6,10 @@
 #
 # All rights reserved - Do Not Redistribute
 #
-Dir.mkdir "#{node['working_dir']}"
+
+unless Dir.exists?("#{node['working_dir']}")
+  Dir.mkdir "#{node['working_dir']}"
+end
 
 node[:deploy].each do |application, deploy|
 
@@ -35,6 +38,17 @@ node[:deploy].each do |application, deploy|
     variables("deploy_dir" => node['deploy_dir'])
   end
 
+  template "/etc/apache2/sites-available/wiin_web.conf" do
+    source "wiin_web.conf.erb"
+    mode "0644"
+    variables("deploy_dir" => node['deploy_dir'])
+  end
+
+  execute 'a2ensite' do
+    command "a2ensite wiin_web.conf"
+    action :run
+  end
+
   deploy_revision node['working_dir'] do
     scm_provider Chef::Provider::Git 
     repo node['deploy_repo']
@@ -44,12 +58,7 @@ node[:deploy].each do |application, deploy|
     shallow_clone false
     symlink_before_migrate({}) # Symlinks to add before running db migrations
     purge_before_symlink [] # Directories to delete before adding symlinks
-    create_dirs_before_symlink ["config"] # Directories to create before adding symlinks
-    symlinks({"config/local.config.php" => "config/local.config.php"})
     action :deploy
-    restart_command do
-      service "apache2" do action :restart; end
-    end
   end
 
   execute 'npm-install' do
@@ -64,3 +73,12 @@ node[:deploy].each do |application, deploy|
     action :run
   end
 end
+
+execute "chown-data-www" do
+  command "chown -R www-data:www-data #{node['deploy_dir']}"
+  user "root"
+  action :run
+end
+
+service "apache2" do action :restart; end
+
